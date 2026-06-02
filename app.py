@@ -117,14 +117,16 @@ def coletar_resultados(driver):
             )
         )
         time.sleep(4)
+
+        # ATUALIZAÇÃO: O Google agora usa div com role='listitem' em vez de li
         cards = driver.find_elements(
             By.XPATH,
-            "//li[.//span[contains(text(), 'R$')] or .//div[contains(text(), 'R$')]]",
+            "//div[@role='listitem' and .//*[contains(text(), 'R$')]]"
         )
+
         return [card.text.strip() for card in cards if card.text.strip()]
     except Exception:
         return []
-
 
 def extrair_dados_voos(textos, conexao, data_voo):
     resultados = []
@@ -355,17 +357,7 @@ def realizar_busca(origem, conexao, datas, destinos, progress_callback=None):
                 url_direta = f"https://www.google.com/travel/flights?q={query_codificada}&hl=pt-BR&curr=BRL"
                 driver.get(url_direta)
                 time.sleep(8)
-                
-                # --- INÍCIO DO RAIO-X ---
-                try:
-                    driver.save_screenshot("tela_google.png")
-                    st.warning("📸 Print da tela capturado! Veja abaixo o que está bloqueando:")
-                    st.image("tela_google.png")
-                except Exception as e:
-                    pass
-                # --- FIM DO RAIO-X ---
-
-                
+                                           
                 fechar_popups(driver)
                 filtrar_uma_escala(driver)
                 textos = coletar_resultados(driver)
