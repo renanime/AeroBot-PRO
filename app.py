@@ -32,6 +32,10 @@ def criar_driver():
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+    # Adicione esta linha abaixo para disfarçar o robô:
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
 
     # Busca os caminhos do navegador e do driver no servidor Linux
     chrome_path = shutil.which("chromium") or shutil.which("google-chrome")
@@ -348,9 +352,7 @@ def realizar_busca(origem, conexao, datas, destinos, progress_callback=None):
 
                 query = f"voos de {origem_url} para {destino_url} em {data} so ida"
                 query_codificada = urllib.parse.quote(query)
-                url_direta = (
-                    f"https://www.google.com/travel/flights?q={query_codificada}&hl=pt-BR"
-                )
+                url_direta = f"https://www.google.com/travel/flights?q={query_codificada}&hl=pt-BR&curr=BRL"
                 driver.get(url_direta)
                 time.sleep(8)
                 fechar_popups(driver)
