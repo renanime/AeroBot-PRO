@@ -420,22 +420,19 @@ label {
     color: #00e5ff !important;
     font-weight: 600 !important;
 }
-div.stButton {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
 div.stButton > button:first-child {
     background-color: #FFD700 !important;
-    color: #111111 !important; /* Força a cor escura no texto */
-    font-weight: 800 !important;
     border-radius: 15px !important;
     border: none !important;
     padding: 0.6rem 1.8rem !important;
 }
+/* Esta linha abaixo força qualquer texto dentro do botão a ficar escuro */
+div.stButton > button:first-child * {
+    color: #111111 !important;
+    font-weight: 800 !important;
+}
 div.stButton > button:first-child:hover {
     background-color: #DAA520 !important;
-    color: #000000 !important;
 }
 [data-baseweb="progress-bar"] {
     background-color: #121a2f;
@@ -525,7 +522,10 @@ with st.expander("💡 Guia e Dicas de Viagem"):
 st.markdown("---")
 
 # Botão principal (centralizado por CSS)
-botao = st.button("🚀 INICIAR RASTREAMENTO")
+# Botão principal centralizado com colunas
+col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
+with col_b2:
+    botao = st.button("🚀 INICIAR RASTREAMENTO", use_container_width=True)
 
 if botao:
     if not origem or not conexao or not destinos:
