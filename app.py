@@ -421,19 +421,21 @@ label {
     font-weight: 600 !important;
 }
 div.stButton {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 div.stButton > button:first-child {
-    background-color: #FFD700;
-    color: #000000;
-    font-weight: 700;
-    border-radius: 15px;
-    border: none;
-    padding: 0.6rem 1.8rem;
+    background-color: #FFD700 !important;
+    color: #111111 !important; /* Força a cor escura no texto */
+    font-weight: 800 !important;
+    border-radius: 15px !important;
+    border: none !important;
+    padding: 0.6rem 1.8rem !important;
 }
 div.stButton > button:first-child:hover {
-    background-color: #DAA520;
-    color: #000000;
+    background-color: #DAA520 !important;
+    color: #000000 !important;
 }
 [data-baseweb="progress-bar"] {
     background-color: #121a2f;
@@ -461,13 +463,15 @@ img {
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# Logo centralizada automaticamente pelo CSS
+# Logo centralizada usando colunas do Streamlit
 logo_path = "ICONE_AEROBOT.png"
 if os.path.exists(logo_path):
     img_logo = Image.open(logo_path)
-    st.image(img_logo, width=200)
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.image(img_logo, use_container_width=True)
 else:
-    st.markdown("### ✈️ AeroBot Pro")
+    st.markdown("<h3 style='text-align: center;'>✈️ AeroBot Pro</h3>", unsafe_allow_html=True)
 
 st.markdown(
     "<h1 style='text-align: center; color: #00e5ff;'>AeroBot Pro</h1>",
@@ -577,22 +581,21 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Botão de suporte centralizado
+# Botão de suporte centralizado com texto escuro
 st.markdown(
     """
-    <div style="text-align: center; margin-top: 0.5rem;">
+    <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
         <a href="https://wa.me/5589994080305?text=Olá%20Renan!%20Gostaria%20de%20falar%20sobre%20o%20AeroBot."
            target="_blank"
-           style="text-decoration: none;">
+           style="text-decoration: none; width: 100%; max-width: 260px;">
             <button style="
                 background-color:#25D366;
-                color:white;
-                padding:6px 14px;
+                color:#111111;
+                padding:8px 14px;
                 border:none;
                 border-radius:10px;
-                font-weight:600;
+                font-weight:800;
                 cursor:pointer;
-                max-width: 260px;
                 width: 100%;
                 ">
                 💬 Suporte via WhatsApp
