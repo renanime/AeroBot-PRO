@@ -82,30 +82,30 @@ def fechar_popups(driver):
 
 def filtrar_uma_escala(driver):
     try:
-        btn_escalas = WebDriverWait(driver, 20).until(
+        # 1. Encontra e clica no botão principal "Escalas"
+        btn_escalas = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    "//button[contains(., 'Escalas') or contains(., 'Paradas') or contains(., 'Stops')]",
-                )
+                (By.XPATH, "//button[.//span[contains(text(), 'Escalas')] or contains(., 'Escalas')]")
             )
         )
-        clicar_js(driver, btn_escalas)
+        driver.execute_script("arguments[0].click();", btn_escalas)
         time.sleep(2)
+
+        # 2. Encontra e clica na opção "1 parada ou menos"
         opcao_1_escala = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    "//*[contains(text(), '1 parada') or contains(text(), '1 escala') or contains(text(), '1 stop')]",
-                )
+                (By.XPATH, "//*[contains(text(), '1 parada') or contains(text(), '1 escala')]")
             )
         )
-        clicar_js(driver, opcao_1_escala)
-        time.sleep(1.5)
+        driver.execute_script("arguments[0].click();", opcao_1_escala)
+        time.sleep(2)
+
+        # 3. Fecha o menu flutuante para a página atualizar
         ActionChains(driver).send_keys(Keys.ESCAPE).perform()
-        time.sleep(4)
+        time.sleep(4) 
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Erro ao filtrar escalas: {e}")
         return False
 
 
@@ -374,9 +374,6 @@ def realizar_busca(origem, conexao, datas, destinos, progress_callback=None):
                 fechar_popups(driver)
                 filtrar_uma_escala(driver)
                 textos = coletar_resultados(driver)
-                st.info(f"🛠️ DEBUG: O robô leu {len(textos)} voos.")
-                if len(textos) > 0:
-                    st.code(textos[0]) # Mostra o texto exato do primeiro voo na tela
                 resultados = extrair_dados_voos(textos, conexao, data)
                 todos_resultados.extend(resultados)
                 time.sleep(2)
