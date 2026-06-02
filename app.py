@@ -20,7 +20,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 # FUNÇÕES DE BACKEND (BASEADAS NO SEU CÓDIGO)
 # ========================
 
-Copiar
+
 
 def criar_driver():
     options = webdriver.ChromeOptions()
