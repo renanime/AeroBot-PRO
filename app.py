@@ -199,8 +199,8 @@ def extrair_dados_voos(textos, conexao, data_voo):
 
     for texto in textos:
         texto_upper = texto.upper()
-        #if sigla_conexao not in texto_upper and conexao.upper() not in texto_upper:
-            #continue
+        if sigla_conexao not in texto_upper and conexao.upper() not in texto_upper:
+            continue
 
         companhia = "Desconhecida"
         for cia in ["LATAM", "GOL", "AZUL", "VOEPASS"]:
