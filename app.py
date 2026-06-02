@@ -186,7 +186,7 @@ def extrair_dados_voos(textos, conexao, data_voo):
         .replace("õ", "o")
         .replace("á", "a")
         .replace("é", "e")
-        .replace("í",",","i")
+        .replace("í", "i")
         .replace("ó", "o")
         .replace("ú", "u")
         .replace("ç", "c")
@@ -374,7 +374,9 @@ def realizar_busca(origem, conexao, datas, destinos, progress_callback=None):
                 fechar_popups(driver)
                 filtrar_uma_escala(driver)
                 textos = coletar_resultados(driver)
-                st.info(f"🛠️ DEBUG: O robô leu {len(textos)} voos na tela do Google.")
+                st.info(f"🛠️ DEBUG: O robô leu {len(textos)} voos.")
+                if len(textos) > 0:
+                    st.code(textos[0]) # Mostra o texto exato do primeiro voo na tela
                 resultados = extrair_dados_voos(textos, conexao, data)
                 todos_resultados.extend(resultados)
                 time.sleep(2)
