@@ -21,7 +21,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 # ========================
 
 
-
 def criar_driver():
     options = webdriver.ChromeOptions()
     options.add_argument("--headless=new")
