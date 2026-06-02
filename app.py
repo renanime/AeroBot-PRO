@@ -1,4 +1,5 @@
 import os
+import shutil
 import re
 import time
 import csv
@@ -24,13 +25,26 @@ from webdriver_manager.chrome import ChromeDriverManager
 def criar_driver():
     options = webdriver.ChromeOptions()
     options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")           # ← obrigatório no Linux
-    options.add_argument("--disable-dev-shm-usage") # ← evita crash de memória
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
-    service = Service(ChromeDriverManager().install())
+
+    # Busca os caminhos do navegador e do driver no servidor Linux
+    chrome_path = shutil.which("chromium") or shutil.which("google-chrome")
+    driver_path = shutil.which("chromedriver")
+
+    if chrome_path and driver_path:
+        # Configuração para o Streamlit Cloud (usa o que está no packages.txt)
+        options.binary_location = chrome_path
+        service = Service(driver_path)
+    else:
+        # Configuração fallback para rodar no seu computador local
+        service = Service(ChromeDriverManager().install())
+
     driver = webdriver.Chrome(service=service, options=options)
     driver.execute_script(
         "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
@@ -463,7 +477,7 @@ with col_margem:
 st.markdown("🎯 **Destinos (máximo 5, um por linha):**")
 destinos_texto = st.text_area(
     "",
-    value="Belém\nNatal\nSão Luís\nManaus\nRecife",
+    value="Belém\nSalvador\nSão Luís\nManaus\nRecife",
     height=100
 )
 destinos = [d.strip() for d in destinos_texto.splitlines() if d.strip()]
