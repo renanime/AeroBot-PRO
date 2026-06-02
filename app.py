@@ -186,8 +186,8 @@ def extrair_dados_voos(textos, conexao, data_voo):
 
     for texto in textos:
         texto_upper = texto.upper()
-        if sigla_conexao not in texto_upper and conexao.upper() not in texto_upper:
-            continue
+        #if sigla_conexao not in texto_upper and conexao.upper() not in texto_upper:
+            #continue
 
         companhia = "Desconhecida"
         for cia in ["LATAM", "GOL", "AZUL", "VOEPASS"]:
@@ -361,6 +361,7 @@ def realizar_busca(origem, conexao, datas, destinos, progress_callback=None):
                 fechar_popups(driver)
                 filtrar_uma_escala(driver)
                 textos = coletar_resultados(driver)
+                st.info(f"🛠️ DEBUG: O robô leu {len(textos)} voos na tela do Google.")
                 resultados = extrair_dados_voos(textos, conexao, data)
                 todos_resultados.extend(resultados)
                 time.sleep(2)
