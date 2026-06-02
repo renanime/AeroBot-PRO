@@ -111,21 +111,34 @@ def filtrar_uma_escala(driver):
 
 def coletar_resultados(driver):
     try:
+        # Espera até o símbolo de Real aparecer em qualquer lugar da página
         WebDriverWait(driver, 15).until(
             EC.presence_of_element_located(
-                (By.XPATH, "//*[contains(text(), 'R$')]")
+                (By.XPATH, "//*[contains(., 'R$')]")
             )
         )
-        time.sleep(4)
+        time.sleep(4) # Tempo extra para a página renderizar os cards
 
-        # ATUALIZAÇÃO: O Google agora usa div com role='listitem' em vez de li
-        cards = driver.find_elements(
-            By.XPATH,
-            "//div[@role='listitem' and .//*[contains(text(), 'R$')]]"
-        )
+        # Lista de possíveis estruturas HTML que o Google usa para os cards de voo
+        xpaths_para_testar = [
+            "//li[.//span[contains(., 'R$')]]",                                      # Estrutura 1 (Listas)
+            "//div[@role='listitem' and .//*[contains(., 'R$')]]",                   # Estrutura 2 (Itens de lista em Div)
+            "//div[@role='button' and .//*[contains(., 'R$')] and .//*[contains(., 'min')]]", # Estrutura 3 (Botões clicáveis)
+            "//div[contains(@class, 'pIav2d')]"                                      # Estrutura 4 (Classe genérica atual)
+        ]
 
+        cards = []
+        # Testa cada estrutura até encontrar uma que retorne resultados
+        for xpath in xpaths_para_testar:
+            elementos = driver.find_elements(By.XPATH, xpath)
+            if len(elementos) > 0:
+                cards = elementos
+                break # Achou os cards, pode parar de procurar
+
+        # Extrai o texto de cada card encontrado
         return [card.text.strip() for card in cards if card.text.strip()]
-    except Exception:
+    except Exception as e:
+        print(f"Erro na coleta: {e}")
         return []
 
 def extrair_dados_voos(textos, conexao, data_voo):
