@@ -702,7 +702,7 @@ with col_b2:
 
 if botao:
     # O spinner começa a girar aqui
-    with st.spinner('✈️ Preparando turbinas e buscando as melhores rotas... Isso pode levar alguns segundos.'):
+    with st.spinner('✈️ Preparando turbinas e buscando as melhores rotas... Isso pode levar alguns minutos.'):
         if not origem or not conexao or not destinos:
             st.error("Preencha origem, conexão e pelo menos 1 destino.")
         else:
@@ -711,7 +711,7 @@ if botao:
                 d = data_base + timedelta(days=i)
                 datas_busca.append(d.strftime("%Y-%m-%d"))
     
-            st.write("⏳ Iniciando motores... isso pode levar alguns minutos.")
+            st.write("⏳ Iniciando motores... ✈️ ✈️ ✈️ ✈️ ✈️  ")
             progresso = st.progress(0)
             status_text = st.empty()
     
