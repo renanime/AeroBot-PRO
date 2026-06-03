@@ -511,6 +511,39 @@ st.markdown(
 )
 st.markdown("---")
 
+# ========================
+# TELA DE LOGIN / SENHA
+# ========================
+SENHA_MESTRE = "Aero2026"  # <-- Mude para a senha que você quiser
+
+# Cria a "memória" para o aplicativo lembrar que você já digitou a senha
+if "logado" not in st.session_state:
+    st.session_state.logado = False
+
+# Se não estiver logado, mostra apenas a tela de senha e PARA o aplicativo
+if not st.session_state.logado:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col_login1, col_login2, col_login3 = st.columns([1, 2, 1])
+
+    with col_login2:
+        st.markdown("<h3 style='text-align: center;'>🔒 Acesso Restrito</h3>", unsafe_allow_html=True)
+        senha_digitada = st.text_input("Digite a senha de acesso:", type="password")
+
+        if st.button("Entrar", use_container_width=True):
+            if senha_digitada == SENHA_MESTRE:
+                st.session_state.logado = True
+                st.rerun()  # Recarrega a página liberando o acesso
+            else:
+                st.error("❌ Senha incorreta!")
+
+    # O comando abaixo é crucial: ele impede que o buscador carregue sem a senha
+    st.stop()
+
+# ========================
+# A PARTIR DAQUI COMEÇA O SEU APLICATIVO NORMAL
+# ========================
+
+
 # Campos principais
 col_origem, col_conexao = st.columns(2)
 with col_origem:
