@@ -426,6 +426,19 @@ input, textarea {
     border: 1px solid #2A3B5C !important;
     transition: all 0.3s ease;
 }
+/* Estilo para as caixas de seleção (Dropdowns e Multiselect) */
+[data-baseweb="select"] > div {
+    background-color: #151E32 !important;
+    color: #F8FAFC !important;
+    border-radius: 8px !important;
+    border: 1px solid #2A3B5C !important;
+}
+/* Cor das etiquetas (tags) dos destinos selecionados */
+[data-baseweb="tag"] {
+    background-color: #2A3B5C !important;
+    color: #F8FAFC !important;
+    border-radius: 6px !important;
+}
 input:focus, textarea:focus {
     border: 1px solid #FFD700 !important;
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.2) !important;
@@ -656,12 +669,31 @@ if st.session_state.is_admin:
 # ========================
 
 
-# Campos principais
+# ========================
+# CAMPOS DE BUSCA INTELIGENTES
+# ========================
+
+# Lista dos principais aeroportos do Brasil
+lista_aeroportos = [
+    "Aracaju (AJU)", "Belém (BEL)", "Belo Horizonte (CNF)", "Boa Vista (BVB)", 
+    "Brasília (BSB)", "Campinas (VCP)", "Campo Grande (CGR)", "Cuiabá (CGB)", 
+    "Curitiba (CWB)", "Florianópolis (FLN)", "Fortaleza (FOR)", "Goiânia (GYN)", 
+    "João Pessoa (JPA)", "Macapá (MCP)", "Maceió (MCZ)", "Manaus (MAO)", 
+    "Natal (NAT)", "Palmas (PMW)", "Porto Alegre (POA)", "Porto Velho (PVH)", 
+    "Recife (REC)", "Rio Branco (RBR)", "Rio de Janeiro (GIG)", "Rio de Janeiro (SDU)", 
+    "Salvador (SSA)", "São Luís (SLZ)", "São Paulo (CGH)", "São Paulo (GRU)", 
+    "Teresina (THE)", "Vitória (VIX)"
+]
+
 col_origem, col_conexao = st.columns(2)
 with col_origem:
-    origem = st.text_input("📍 Cidade de Origem", "Brasília")
+    origem_selecionada = st.selectbox("📍 Cidade de Origem", options=lista_aeroportos, index=lista_aeroportos.index("Brasília (BSB)"))
+    # O código abaixo extrai apenas a sigla (ex: BSB) para o robô pesquisar mais rápido
+    origem = origem_selecionada.split("(")[-1].replace(")", "") 
+
 with col_conexao:
-    conexao = st.text_input("🔄 Cidade de Conexão", "Fortaleza")
+    conexao_selecionada = st.selectbox("🔄 Cidade de Conexão", options=lista_aeroportos, index=lista_aeroportos.index("Fortaleza (FOR)"))
+    conexao = conexao_selecionada.split("(")[-1].replace(")", "")
 
 col_data, col_margem = st.columns(2)
 with col_data:
@@ -669,24 +701,24 @@ with col_data:
 with col_margem:
     margem = st.number_input("⏳ Margem de dias (+/-)", min_value=0, max_value=7, value=2, step=1)
 
-st.markdown("🎯 **Destinos (máximo 5, um por linha):**")
-destinos_texto = st.text_area(
-    "",
-    value="Belém\nSalvador\nSão Luís\nManaus\nRecife",
-    height=100
+# O multiselect substitui a caixa de texto gigante
+destinos_selecionados = st.multiselect(
+    "🎯 **Selecione os Destinos (máximo 5):**",
+    options=lista_aeroportos,
+    default=["Belém (BEL)", "Salvador (SSA)", "São Luís (SLZ)", "Manaus (MAO)", "Recife (REC)"],
+    max_selections=5,
+    placeholder="Clique ou digite para buscar o aeroporto..."
 )
-destinos = [d.strip() for d in destinos_texto.splitlines() if d.strip()]
-if len(destinos) > 5:
-    st.error("Por favor, insira no máximo 5 destinos.")
-    destinos = destinos[:5]
+# Extrai apenas as siglas dos destinos selecionados para o robô
+destinos = [d.split("(")[-1].replace(")", "") for d in destinos_selecionados]
 
 with st.expander("💡 Guia e Dicas de Viagem"):
     st.markdown(
         """
         **📌 COMO PREENCHER:**
-        - Insira a origem, conexão e data base.
+        - Selecione a origem, conexão e data base.
         - A margem de dias pesquisa datas antes e depois da data base.
-        - Coloque no máximo 5 destinos, um em cada linha.
+        - Escolha até 5 destinos na lista (você pode digitar o nome da cidade para achar mais rápido).
 
         **⚠️ AVISOS IMPORTANTES PARA VOOS SEPARADOS:**
         - 🎒 **Bagagem:** evite despachar; prefira mala de mão.
