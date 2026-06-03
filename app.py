@@ -393,68 +393,99 @@ st.set_page_config(page_title="AeroBot Pro Web", page_icon="✈️")
 
 custom_css = """
 <style>
-[data-testid="stAppViewContainer"] {
-    background: #0B0F19;
-}
-[data-testid="stSidebar"] {
+/* Fundo geral mais sofisticado */
+[data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
     background: #0B0F19;
 }
 .block-container {
-    max-width: 600px;
+    max-width: 650px;
     margin: 0 auto;
+    padding-top: 2rem;
 }
+/* Títulos com cor mais suave e elegante */
 h1, h2, h3, h4, h5, h6 {
-    color: #00e5ff;
-    font-family: "Roboto", sans-serif;
+    color: #F8FAFC;
+    font-family: "Inter", "Roboto", sans-serif;
+    font-weight: 700;
 }
 body, [data-testid="stMarkdownContainer"] {
-    color: #ffffff;
+    color: #CBD5E1;
 }
+/* Campos de digitação estilo SaaS Premium */
 input, textarea {
-    background-color: #121a2f !important;
-    color: #ffffff !important;
-    border-radius: 10px !important;
-    border: 1px solid #1a65d4 !important;
+    background-color: #151E32 !important;
+    color: #F8FAFC !important;
+    border-radius: 8px !important;
+    border: 1px solid #2A3B5C !important;
+    transition: all 0.3s ease;
+}
+input:focus, textarea:focus {
+    border: 1px solid #FFD700 !important;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.2) !important;
 }
 label {
-    color: #00e5ff !important;
-    font-weight: 600 !important;
+    color: #94A3B8 !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+}
+/* Botão Principal com efeito de flutuação */
+div.stButton {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 1rem;
 }
 div.stButton > button:first-child {
     background-color: #FFD700 !important;
-    border-radius: 15px !important;
+    border-radius: 12px !important;
     border: none !important;
-    padding: 0.6rem 1.8rem !important;
+    padding: 0.7rem 2rem !important;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.15) !important;
+    transition: all 0.3s ease !important;
 }
-/* Esta linha abaixo força qualquer texto dentro do botão a ficar escuro */
 div.stButton > button:first-child * {
     color: #111111 !important;
     font-weight: 800 !important;
+    letter-spacing: 0.5px;
 }
 div.stButton > button:first-child:hover {
-    background-color: #DAA520 !important;
+    background-color: #FACC15 !important;
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3) !important;
+    transform: translateY(-2px);
 }
+/* Barra de progresso mais limpa */
 [data-baseweb="progress-bar"] {
-    background-color: #121a2f;
+    background-color: #151E32;
+    border-radius: 10px;
 }
 [data-baseweb="progress-bar"] > div {
-    background-color: #1a65d4;
+    background-color: #FFD700;
 }
-img {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
+/* Rodapé discreto */
 .footer-text {
     text-align: center;
-    color:#aaaaaa;
-    font-size: 12px;
+    color: #64748B;
+    font-size: 13px;
+    margin-top: 2rem;
 }
-@media (max-width: 600px) {
-    .block-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
+/* Botão WhatsApp com hover */
+.whatsapp-btn {
+    background-color: #25D366;
+    color: #111111;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+    max-width: 260px;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2);
+    transition: all 0.3s ease;
+}
+.whatsapp-btn:hover {
+    background-color: #22C55E;
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
+    transform: translateY(-2px);
 }
 </style>
 """
@@ -588,16 +619,7 @@ st.markdown(
         <a href="https://wa.me/5589994080305?text=Olá%20Renan!%20Gostaria%20de%20falar%20sobre%20o%20AeroBot."
            target="_blank"
            style="text-decoration: none; width: 100%; max-width: 260px;">
-            <button style="
-                background-color:#25D366;
-                color:#111111;
-                padding:8px 14px;
-                border:none;
-                border-radius:10px;
-                font-weight:800;
-                cursor:pointer;
-                width: 100%;
-                ">
+            <button class="whatsapp-btn">
                 💬 Suporte via WhatsApp
             </button>
         </a>
