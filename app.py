@@ -7,6 +7,7 @@ import re
 import time
 import csv
 import urllib.parse
+from datetime import datetime, timedelta
 from datetime import datetime, timedelta, date
 import streamlit as st
 from PIL import Image
@@ -515,28 +516,34 @@ st.markdown(
 st.markdown("---")
 
 # ========================
-# TELA DE LOGIN E GERENCIADOR DE SENHAS
+# TELA DE LOGIN E GERENCIADOR DE SENHAS (PRO)
 # ========================
-SENHA_ADMIN = "RenanAdmin"  # <-- Sua senha mestre (não passe para ninguém)
+SENHA_ADMIN = "RenanAdmin"  # <-- Sua senha mestre
 ARQUIVO_SENHAS = "senhas_geradas.json"
 
-# Funções para salvar e ler as senhas criadas
 def carregar_senhas():
     if os.path.exists(ARQUIVO_SENHAS):
-        with open(ARQUIVO_SENHAS, "r") as f:
-            return json.load(f)
+        try:
+            with open(ARQUIVO_SENHAS, "r") as f:
+                dados = json.load(f)
+                # Prevenção de erro caso exista o arquivo antigo
+                if len(dados) > 0 and isinstance(dados[0], str):
+                    return []
+                return dados
+        except:
+            return []
     return []
 
 def salvar_senhas(lista_senhas):
     with open(ARQUIVO_SENHAS, "w") as f:
         json.dump(lista_senhas, f)
 
-# Cria a memória da sessão
 if "logado" not in st.session_state:
     st.session_state.logado = False
     st.session_state.is_admin = False
 
 senhas_validas = carregar_senhas()
+data_hoje = datetime.now().date()
 
 # TELA DE BLOQUEIO
 if not st.session_state.logado:
@@ -552,35 +559,64 @@ if not st.session_state.logado:
                 st.session_state.logado = True
                 st.session_state.is_admin = True
                 st.rerun()
-            elif senha_digitada in senhas_validas:
-                st.session_state.logado = True
-                st.session_state.is_admin = False
-                st.rerun()
             else:
-                st.error("❌ Senha incorreta ou expirada!")
+                # Verifica se a senha existe e se está no prazo de validade
+                senha_encontrada = False
+                for s in senhas_validas:
+                    if senha_digitada == s["codigo"]:
+                        data_expiracao = datetime.strptime(s["expira_em"], "%Y-%m-%d").date()
+                        if data_hoje <= data_expiracao:
+                            st.session_state.logado = True
+                            st.session_state.is_admin = False
+                            senha_encontrada = True
+                            st.rerun()
+                        else:
+                            st.error("❌ Esta senha expirou!")
+                            senha_encontrada = True
+                        break
+
+                if not senha_encontrada:
+                    st.error("❌ Senha incorreta!")
     st.stop()
 
-# PAINEL DO ADMINISTRADOR (Só aparece para você)
+# PAINEL DO ADMINISTRADOR
 if st.session_state.is_admin:
     with st.sidebar:
         st.markdown("### 👑 Painel Admin")
-        st.write("Gerencie os acessos ao sistema.")
 
-        if st.button("➕ Gerar Nova Senha"):
-            # Cria uma senha aleatória de 6 letras/números
+        # Gerador de senhas com prazo
+        st.markdown("**Criar Acesso:**")
+        dias_validade = st.number_input("Dias de teste:", min_value=1, value=7)
+
+        if st.button("➕ Gerar Senha", use_container_width=True):
             nova_senha = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-            senhas_validas.append(nova_senha)
+            data_exp = (datetime.now() + timedelta(days=dias_validade)).strftime("%Y-%m-%d")
+
+            senhas_validas.append({"codigo": nova_senha, "expira_em": data_exp})
             salvar_senhas(senhas_validas)
-            st.success(f"Senha gerada: **{nova_senha}**")
+            st.success(f"Criada: **{nova_senha}**")
+            st.rerun()
 
         st.markdown("---")
         st.markdown("**Senhas Ativas:**")
-        for s in senhas_validas:
-            st.code(s)
 
-        if st.button("🗑️ Apagar todas as senhas"):
-            salvar_senhas([])
-            st.rerun()
+        # Lista as senhas com botão de exclusão individual
+        if len(senhas_validas) == 0:
+            st.info("Nenhuma senha ativa.")
+        else:
+            for i, s in enumerate(senhas_validas):
+                col_texto, col_btn = st.columns([3, 1])
+                with col_texto:
+                    # Mostra se está ativa ou expirada
+                    data_exp_obj = datetime.strptime(s["expira_em"], "%Y-%m-%d").date()
+                    status = "🟢" if data_hoje <= data_exp_obj else "🔴"
+                    st.caption(f"{status} **{s['codigo']}** (Até {s['expira_em']})")
+                with col_btn:
+                    # Botão de lixeira individual
+                    if st.button("🗑️", key=f"del_{s['codigo']}_{i}"):
+                        senhas_validas.remove(s)
+                        salvar_senhas(senhas_validas)
+                        st.rerun()
 
 # ========================
 # A PARTIR DAQUI COMEÇA O SEU APLICATIVO NORMAL
