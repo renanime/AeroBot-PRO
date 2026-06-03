@@ -600,23 +600,35 @@ if st.session_state.is_admin:
         st.markdown("---")
         st.markdown("**Senhas Ativas:**")
 
-        # Lista as senhas com botão de exclusão individual
+                      # Lista as senhas com botão de exclusão individual e botão de copiar
         if len(senhas_validas) == 0:
             st.info("Nenhuma senha ativa.")
         else:
             for i, s in enumerate(senhas_validas):
-                col_texto, col_btn = st.columns([3, 1])
+                col_texto, col_btn = st.columns([2, 1.2]) 
+
                 with col_texto:
-                    # Mostra se está ativa ou expirada
                     data_exp_obj = datetime.strptime(s["expira_em"], "%Y-%m-%d").date()
                     status = "🟢" if data_hoje <= data_exp_obj else "🔴"
-                    st.caption(f"{status} **{s['codigo']}** (Até {s['expira_em']})")
+
+                    # Mostra o status e a data de vencimento
+                    st.markdown(
+                        f"{status} <span style='color: #94A3B8; font-size: 13px;'>Vence em: {s['expira_em']}</span>", 
+                        unsafe_allow_html=True
+                    )
+                    # O st.code cria a caixa com o botão de copiar automático!
+                    st.code(s['codigo'])
+
                 with col_btn:
-                    # Botão de lixeira individual
-                    if st.button("🗑️", key=f"del_{s['codigo']}_{i}"):
+                    # Empurra o botão um pouco para baixo para alinhar com a caixa preta
+                    st.markdown("<br>", unsafe_allow_html=True) 
+                    if st.button("🗑️ Excluir", key=f"del_{s['codigo']}_{i}", type="primary", use_container_width=True):
                         senhas_validas.remove(s)
                         salvar_senhas(senhas_validas)
                         st.rerun()
+
+                # Linha divisória sutil
+                st.markdown("<hr style='margin: 0.2em 0; border-color: #2A3B5C;'>", unsafe_allow_html=True)
 
 # ========================
 # A PARTIR DAQUI COMEÇA O SEU APLICATIVO NORMAL
