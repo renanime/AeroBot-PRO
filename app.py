@@ -600,34 +600,33 @@ if st.session_state.is_admin:
         st.markdown("---")
         st.markdown("**Senhas Ativas:**")
 
-                      # Lista as senhas com botão de exclusão individual e botão de copiar
+                             # Lista as senhas com botão de exclusão individual e botão de copiar
         if len(senhas_validas) == 0:
             st.info("Nenhuma senha ativa.")
         else:
             for i, s in enumerate(senhas_validas):
-                col_texto, col_btn = st.columns([2, 1.2]) 
+                # Ajustamos a proporção: mais espaço para a senha, menos para o botão
+                col_texto, col_btn = st.columns([2.5, 1]) 
 
                 with col_texto:
                     data_exp_obj = datetime.strptime(s["expira_em"], "%Y-%m-%d").date()
                     status = "🟢" if data_hoje <= data_exp_obj else "🔴"
 
-                    # Mostra o status e a data de vencimento
                     st.markdown(
                         f"{status} <span style='color: #94A3B8; font-size: 13px;'>Vence em: {s['expira_em']}</span>", 
                         unsafe_allow_html=True
                     )
-                    # O st.code cria a caixa com o botão de copiar automático!
                     st.code(s['codigo'])
 
                 with col_btn:
-                    # Empurra o botão um pouco para baixo para alinhar com a caixa preta
+                    # Alinhamento vertical com a caixa de senha
                     st.markdown("<br>", unsafe_allow_html=True) 
-                    if st.button("🗑️ Excluir", key=f"del_{s['codigo']}_{i}", type="primary", use_container_width=True):
+                    # Deixamos apenas o ícone para evitar a quebra de linha
+                    if st.button("🗑️", key=f"del_{s['codigo']}_{i}", use_container_width=True):
                         senhas_validas.remove(s)
                         salvar_senhas(senhas_validas)
                         st.rerun()
 
-                # Linha divisória sutil
                 st.markdown("<hr style='margin: 0.2em 0; border-color: #2A3B5C;'>", unsafe_allow_html=True)
 
 # ========================
