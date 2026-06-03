@@ -432,14 +432,8 @@ label {
     font-weight: 500 !important;
     font-size: 0.9rem !important;
 }
-/* Botão Principal com efeito de flutuação */
-div.stButton {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin-top: 1rem;
-}
-div.stButton > button:first-child {
+/* Botões Principais (Amarelos) */
+button[kind="primary"] {
     background-color: #FFD700 !important;
     border-radius: 12px !important;
     border: none !important;
@@ -447,15 +441,26 @@ div.stButton > button:first-child {
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.15) !important;
     transition: all 0.3s ease !important;
 }
-div.stButton > button:first-child * {
+button[kind="primary"] * {
     color: #111111 !important;
     font-weight: 800 !important;
     letter-spacing: 0.5px;
 }
-div.stButton > button:first-child:hover {
+button[kind="primary"]:hover {
     background-color: #FACC15 !important;
     box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3) !important;
     transform: translateY(-2px);
+}
+
+/* Botões Secundários (Lixeira) */
+button[kind="secondary"] {
+    background-color: #151E32 !important;
+    border: 1px solid #EF4444 !important; /* Borda vermelha */
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+}
+button[kind="secondary"]:hover {
+    background-color: #EF4444 !important; /* Fica todo vermelho ao passar o mouse */
 }
 /* Barra de progresso mais limpa */
 [data-baseweb="progress-bar"] {
@@ -554,7 +559,7 @@ if not st.session_state.logado:
         st.markdown("<h3 style='text-align: center;'>🔒 Acesso Restrito</h3>", unsafe_allow_html=True)
         senha_digitada = st.text_input("Digite a senha de acesso:", type="password")
 
-        if st.button("Entrar", use_container_width=True):
+        if st.button("Entrar", type="primary", use_container_width=True):
             if senha_digitada == SENHA_ADMIN:
                 st.session_state.logado = True
                 st.session_state.is_admin = True
@@ -588,7 +593,7 @@ if st.session_state.is_admin:
         st.markdown("**Criar Acesso:**")
         dias_validade = st.number_input("Dias de teste:", min_value=1, value=7)
 
-        if st.button("➕ Gerar Senha", use_container_width=True):
+        if st.button("➕ Gerar Senha", type="primary", use_container_width=True):
             nova_senha = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
             data_exp = (datetime.now() + timedelta(days=dias_validade)).strftime("%Y-%m-%d")
 
@@ -679,7 +684,7 @@ st.markdown("---")
 # Botão principal centralizado com colunas
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
-    botao = st.button("🚀 INICIAR RASTREAMENTO", use_container_width=True)
+    botao = st.button("🚀 INICIAR RASTREAMENTO", type="primary", use_container_width=True)
 
 if botao:
     if not origem or not conexao or not destinos:
