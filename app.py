@@ -397,14 +397,17 @@ st.set_page_config(page_title="AeroBot Pro | Buscador", page_icon="✈️", layo
 
 custom_css = """
 <style>
-/* Fundo geral mais sofisticado */
-[data-testid="stAppViewContainer"], [data-testid="stSidebar"] {
-    background: #0B0F19;
+/* Fundo geral com imagem de aviação e película escura */
+[data-testid="stAppViewContainer"] {
+    background-image: linear-gradient(rgba(11, 15, 25, 0.80), rgba(11, 15, 25, 0.95)), url("https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=2074&auto=format&fit=crop");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
-.block-container {
-    max-width: 650px;
-    margin: 0 auto;
-    padding-top: 2rem;
+
+/* Mantém a barra lateral (Painel Admin) escura para não confundir a leitura */
+[data-testid="stSidebar"] {
+    background: #0B0F19;
 }
 /* Títulos com cor mais suave e elegante */
 h1, h2, h3, h4, h5, h6 {
