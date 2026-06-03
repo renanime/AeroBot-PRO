@@ -589,13 +589,24 @@ if st.session_state.is_admin:
     with st.sidebar:
         st.markdown("### 👑 Painel Admin")
 
-        # Gerador de senhas com prazo
+        # Gerador de senhas
         st.markdown("**Criar Acesso:**")
-        dias_validade = st.number_input("Dias de teste:", min_value=1, value=7)
+
+        # Nova opção de senha definitiva
+        is_permanente = st.checkbox("⭐ Senha Definitiva (Sem validade)")
+
+        # Só mostra o campo de dias se NÃO for definitiva
+        if not is_permanente:
+            dias_validade = st.number_input("Dias de teste:", min_value=1, value=7)
 
         if st.button("➕ Gerar Senha", type="primary", use_container_width=True):
             nova_senha = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-            data_exp = (datetime.now() + timedelta(days=dias_validade)).strftime("%Y-%m-%d")
+
+            # Se for definitiva, joga a validade para o ano 2099
+            if is_permanente:
+                data_exp = "2099-12-31"
+            else:
+                data_exp = (datetime.now() + timedelta(days=dias_validade)).strftime("%Y-%m-%d")
 
             senhas_validas.append({"codigo": nova_senha, "expira_em": data_exp})
             salvar_senhas(senhas_validas)
@@ -605,28 +616,31 @@ if st.session_state.is_admin:
         st.markdown("---")
         st.markdown("**Senhas Ativas:**")
 
-                             # Lista as senhas com botão de exclusão individual e botão de copiar
+        # Lista as senhas
         if len(senhas_validas) == 0:
             st.info("Nenhuma senha ativa.")
         else:
             for i, s in enumerate(senhas_validas):
-                # Ajustamos a proporção: mais espaço para a senha, menos para o botão
                 col_texto, col_btn = st.columns([2.5, 1]) 
 
                 with col_texto:
-                    data_exp_obj = datetime.strptime(s["expira_em"], "%Y-%m-%d").date()
-                    status = "🟢" if data_hoje <= data_exp_obj else "🔴"
+                    # Verifica se é a senha definitiva (ano 2099)
+                    if s["expira_em"] == "2099-12-31":
+                        status = "⭐"
+                        texto_validade = "Acesso Definitivo"
+                    else:
+                        data_exp_obj = datetime.strptime(s["expira_em"], "%Y-%m-%d").date()
+                        status = "🟢" if data_hoje <= data_exp_obj else "🔴"
+                        texto_validade = f"Vence em: {s['expira_em']}"
 
                     st.markdown(
-                        f"{status} <span style='color: #94A3B8; font-size: 13px;'>Vence em: {s['expira_em']}</span>", 
+                        f"{status} <span style='color: #94A3B8; font-size: 13px;'>{texto_validade}</span>", 
                         unsafe_allow_html=True
                     )
                     st.code(s['codigo'])
 
                 with col_btn:
-                    # Alinhamento vertical com a caixa de senha
                     st.markdown("<br>", unsafe_allow_html=True) 
-                    # Deixamos apenas o ícone para evitar a quebra de linha
                     if st.button("🗑️", key=f"del_{s['codigo']}_{i}", use_container_width=True):
                         senhas_validas.remove(s)
                         salvar_senhas(senhas_validas)
