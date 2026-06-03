@@ -622,7 +622,7 @@ if st.session_state.is_admin:
                     # Alinhamento vertical com a caixa de senha
                     st.markdown("<br>", unsafe_allow_html=True) 
                     # Deixamos apenas o ícone para evitar a quebra de linha
-                    if st.button("🗑️ Excluir", key=f"del_{s['codigo']}_{i}", use_container_width=True):
+                    if st.button("🗑️", key=f"del_{s['codigo']}_{i}", use_container_width=True):
                         senhas_validas.remove(s)
                         salvar_senhas(senhas_validas)
                         st.rerun()
