@@ -374,7 +374,7 @@ def realizar_busca(origem, conexao, datas, destinos, progress_callback=None):
                 url_direta = f"https://www.google.com/travel/flights?q={query_codificada}&hl=pt-BR&curr=BRL"
                 driver.get(url_direta)
                 time.sleep(8)
-                                           
+
                 fechar_popups(driver)
                 filtrar_uma_escala(driver)
                 textos = coletar_resultados(driver)
@@ -694,56 +694,79 @@ with st.expander("💡 Guia e Dicas de Viagem"):
 
 st.markdown("---")
 
-# Botão principal (centralizado por CSS)
 # Botão principal centralizado com colunas
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
     botao = st.button("🚀 INICIAR RASTREAMENTO", type="primary", use_container_width=True)
 
 if botao:
-    # O spinner começa a girar aqui
-    with st.spinner('✈️ Preparando turbinas e buscando as melhores rotas... Isso pode levar alguns minutos.'):
-        if not origem or not conexao or not destinos:
-            st.error("Preencha origem, conexão e pelo menos 1 destino.")
+    # Cria a tela de carregamento com a hélice
+    tela_carregamento = st.empty()
+    tela_carregamento.markdown(
+        """
+        <style>
+        .helice-girando {
+            display: inline-block;
+            animation: spin 0.8s linear infinite;
+            font-size: 28px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        </style>
+        <div style='text-align: center; padding: 20px; background-color: #151E32; border-radius: 12px; border: 1px solid #2A3B5C; margin-bottom: 20px;'>
+            <span class='helice-girando'>⚙️</span> 
+            <span style='color: #F8FAFC; font-weight: bold; font-size: 16px; margin-left: 15px;'>
+                Ligando turbinas e buscando as melhores rotas...
+            </span>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
+
+    if not origem or not conexao or not destinos:
+        st.error("Preencha origem, conexão e pelo menos 1 destino.")
+        tela_carregamento.empty() # Apaga a hélice se der erro
+    else:
+        datas_busca = []
+        for i in range(-margem, margem + 1):
+            d = data_base + timedelta(days=i)
+            datas_busca.append(d.strftime("%Y-%m-%d"))
+
+        st.write("⏳ Iniciando motores... ✈️ ✈️ ✈️ ✈️ ✈️  ")
+        progresso = st.progress(0)
+        status_text = st.empty()
+
+        def atualizar_progresso(passo_atual, total, destino_atual, data_atual):
+            pct = passo_atual / total
+            progresso.progress(pct)
+            status_text.text(
+                f"📡 Rastreando {destino_atual.upper()} na data {data_atual} "
+                f"({passo_atual}/{total})"
+            )
+
+        resultados = realizar_busca(origem, conexao, datas_busca, destinos, atualizar_progresso)
+        total_salvo, melhor_voo, caminho_arquivo = salvar_resultados(resultados, conexao)
+
+        if total_salvo > 0:
+            st.success(f"Rastreamento finalizado! {total_salvo} voos encontrados.")
+            if melhor_voo:
+                st.subheader("🏆 Melhor oportunidade encontrada")
+                st.write(f"💰 **Valor**: {melhor_voo['preco']}")
+                st.write(f"📅 **Data**: {melhor_voo['data']}")
+                st.write(f"✈️ **Companhia**: {melhor_voo['cia']}")
+
+            if caminho_arquivo and os.path.exists(caminho_arquivo):
+                with open(caminho_arquivo, "rb") as f:
+                    st.download_button(
+                        "📥 Baixar relatório em CSV",
+                        data=f,
+                        file_name=os.path.basename(caminho_arquivo),
+                        mime="text/csv"
+                    )
         else:
-            datas_busca = []
-            for i in range(-margem, margem + 1):
-                d = data_base + timedelta(days=i)
-                datas_busca.append(d.strftime("%Y-%m-%d"))
-    
-            st.write("⏳ Iniciando motores... ✈️ ✈️ ✈️ ✈️ ✈️  ")
-            progresso = st.progress(0)
-            status_text = st.empty()
-    
-            def atualizar_progresso(passo_atual, total, destino_atual, data_atual):
-                pct = passo_atual / total
-                progresso.progress(pct)
-                status_text.text(
-                    f"📡 Rastreando {destino_atual.upper()} na data {data_atual} "
-                    f"({passo_atual}/{total})"
-                )
-    
-            resultados = realizar_busca(origem, conexao, datas_busca, destinos, atualizar_progresso)
-            total_salvo, melhor_voo, caminho_arquivo = salvar_resultados(resultados, conexao)
-    
-            if total_salvo > 0:
-                st.success(f"Rastreamento finalizado! {total_salvo} voos encontrados.")
-                if melhor_voo:
-                    st.subheader("🏆 Melhor oportunidade encontrada")
-                    st.write(f"💰 **Valor**: {melhor_voo['preco']}")
-                    st.write(f"📅 **Data**: {melhor_voo['data']}")
-                    st.write(f"✈️ **Companhia**: {melhor_voo['cia']}")
-    
-                if caminho_arquivo and os.path.exists(caminho_arquivo):
-                    with open(caminho_arquivo, "rb") as f:
-                        st.download_button(
-                            "📥 Baixar relatório em CSV",
-                            data=f,
-                            file_name=os.path.basename(caminho_arquivo),
-                            mime="text/csv"
-                        )
-            else:
-                st.warning("Varredura concluída, mas nenhum voo com essa conexão foi encontrado.")
+            st.warning("Varredura concluída, mas nenhum voo com essa conexão foi encontrado.")
+
+        # Apaga a hélice quando a busca terminar
+        tela_carregamento.empty()
 
 # Rodapé
 st.markdown(
