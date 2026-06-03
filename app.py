@@ -1,3 +1,6 @@
+import json
+import random
+import string
 import os
 import shutil
 import re
@@ -512,15 +515,30 @@ st.markdown(
 st.markdown("---")
 
 # ========================
-# TELA DE LOGIN / SENHA
+# TELA DE LOGIN E GERENCIADOR DE SENHAS
 # ========================
-SENHA_MESTRE = "Aero2026"  # <-- Mude para a senha que você quiser
+SENHA_ADMIN = "RenanAdmin"  # <-- Sua senha mestre (não passe para ninguém)
+ARQUIVO_SENHAS = "senhas_geradas.json"
 
-# Cria a "memória" para o aplicativo lembrar que você já digitou a senha
+# Funções para salvar e ler as senhas criadas
+def carregar_senhas():
+    if os.path.exists(ARQUIVO_SENHAS):
+        with open(ARQUIVO_SENHAS, "r") as f:
+            return json.load(f)
+    return []
+
+def salvar_senhas(lista_senhas):
+    with open(ARQUIVO_SENHAS, "w") as f:
+        json.dump(lista_senhas, f)
+
+# Cria a memória da sessão
 if "logado" not in st.session_state:
     st.session_state.logado = False
+    st.session_state.is_admin = False
 
-# Se não estiver logado, mostra apenas a tela de senha e PARA o aplicativo
+senhas_validas = carregar_senhas()
+
+# TELA DE BLOQUEIO
 if not st.session_state.logado:
     st.markdown("<br><br>", unsafe_allow_html=True)
     col_login1, col_login2, col_login3 = st.columns([1, 2, 1])
@@ -530,14 +548,39 @@ if not st.session_state.logado:
         senha_digitada = st.text_input("Digite a senha de acesso:", type="password")
 
         if st.button("Entrar", use_container_width=True):
-            if senha_digitada == SENHA_MESTRE:
+            if senha_digitada == SENHA_ADMIN:
                 st.session_state.logado = True
-                st.rerun()  # Recarrega a página liberando o acesso
+                st.session_state.is_admin = True
+                st.rerun()
+            elif senha_digitada in senhas_validas:
+                st.session_state.logado = True
+                st.session_state.is_admin = False
+                st.rerun()
             else:
-                st.error("❌ Senha incorreta!")
-
-    # O comando abaixo é crucial: ele impede que o buscador carregue sem a senha
+                st.error("❌ Senha incorreta ou expirada!")
     st.stop()
+
+# PAINEL DO ADMINISTRADOR (Só aparece para você)
+if st.session_state.is_admin:
+    with st.sidebar:
+        st.markdown("### 👑 Painel Admin")
+        st.write("Gerencie os acessos ao sistema.")
+
+        if st.button("➕ Gerar Nova Senha"):
+            # Cria uma senha aleatória de 6 letras/números
+            nova_senha = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            senhas_validas.append(nova_senha)
+            salvar_senhas(senhas_validas)
+            st.success(f"Senha gerada: **{nova_senha}**")
+
+        st.markdown("---")
+        st.markdown("**Senhas Ativas:**")
+        for s in senhas_validas:
+            st.code(s)
+
+        if st.button("🗑️ Apagar todas as senhas"):
+            salvar_senhas([])
+            st.rerun()
 
 # ========================
 # A PARTIR DAQUI COMEÇA O SEU APLICATIVO NORMAL
