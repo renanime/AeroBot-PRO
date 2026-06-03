@@ -393,7 +393,7 @@ def realizar_busca(origem, conexao, datas, destinos, progress_callback=None):
 # INTERFACE STREAMLIT (DESKTOP + MOBILE)
 # ========================
 
-st.set_page_config(page_title="AeroBot Pro Web", page_icon="✈️")
+st.set_page_config(page_title="AeroBot Pro | Buscador", page_icon="✈️", layout="centered")
 
 custom_css = """
 <style>
@@ -701,47 +701,49 @@ with col_b2:
     botao = st.button("🚀 INICIAR RASTREAMENTO", type="primary", use_container_width=True)
 
 if botao:
-    if not origem or not conexao or not destinos:
-        st.error("Preencha origem, conexão e pelo menos 1 destino.")
-    else:
-        datas_busca = []
-        for i in range(-margem, margem + 1):
-            d = data_base + timedelta(days=i)
-            datas_busca.append(d.strftime("%Y-%m-%d"))
-
-        st.write("⏳ Iniciando motores... isso pode levar alguns minutos.")
-        progresso = st.progress(0)
-        status_text = st.empty()
-
-        def atualizar_progresso(passo_atual, total, destino_atual, data_atual):
-            pct = passo_atual / total
-            progresso.progress(pct)
-            status_text.text(
-                f"📡 Rastreando {destino_atual.upper()} na data {data_atual} "
-                f"({passo_atual}/{total})"
-            )
-
-        resultados = realizar_busca(origem, conexao, datas_busca, destinos, atualizar_progresso)
-        total_salvo, melhor_voo, caminho_arquivo = salvar_resultados(resultados, conexao)
-
-        if total_salvo > 0:
-            st.success(f"Rastreamento finalizado! {total_salvo} voos encontrados.")
-            if melhor_voo:
-                st.subheader("🏆 Melhor oportunidade encontrada")
-                st.write(f"💰 **Valor**: {melhor_voo['preco']}")
-                st.write(f"📅 **Data**: {melhor_voo['data']}")
-                st.write(f"✈️ **Companhia**: {melhor_voo['cia']}")
-
-            if caminho_arquivo and os.path.exists(caminho_arquivo):
-                with open(caminho_arquivo, "rb") as f:
-                    st.download_button(
-                        "📥 Baixar relatório em CSV",
-                        data=f,
-                        file_name=os.path.basename(caminho_arquivo),
-                        mime="text/csv"
-                    )
+    # O spinner começa a girar aqui
+    with st.spinner('✈️ Preparando turbinas e buscando as melhores rotas... Isso pode levar alguns segundos.'):
+        if not origem or not conexao or not destinos:
+            st.error("Preencha origem, conexão e pelo menos 1 destino.")
         else:
-            st.warning("Varredura concluída, mas nenhum voo com essa conexão foi encontrado.")
+            datas_busca = []
+            for i in range(-margem, margem + 1):
+                d = data_base + timedelta(days=i)
+                datas_busca.append(d.strftime("%Y-%m-%d"))
+    
+            st.write("⏳ Iniciando motores... isso pode levar alguns minutos.")
+            progresso = st.progress(0)
+            status_text = st.empty()
+    
+            def atualizar_progresso(passo_atual, total, destino_atual, data_atual):
+                pct = passo_atual / total
+                progresso.progress(pct)
+                status_text.text(
+                    f"📡 Rastreando {destino_atual.upper()} na data {data_atual} "
+                    f"({passo_atual}/{total})"
+                )
+    
+            resultados = realizar_busca(origem, conexao, datas_busca, destinos, atualizar_progresso)
+            total_salvo, melhor_voo, caminho_arquivo = salvar_resultados(resultados, conexao)
+    
+            if total_salvo > 0:
+                st.success(f"Rastreamento finalizado! {total_salvo} voos encontrados.")
+                if melhor_voo:
+                    st.subheader("🏆 Melhor oportunidade encontrada")
+                    st.write(f"💰 **Valor**: {melhor_voo['preco']}")
+                    st.write(f"📅 **Data**: {melhor_voo['data']}")
+                    st.write(f"✈️ **Companhia**: {melhor_voo['cia']}")
+    
+                if caminho_arquivo and os.path.exists(caminho_arquivo):
+                    with open(caminho_arquivo, "rb") as f:
+                        st.download_button(
+                            "📥 Baixar relatório em CSV",
+                            data=f,
+                            file_name=os.path.basename(caminho_arquivo),
+                            mime="text/csv"
+                        )
+            else:
+                st.warning("Varredura concluída, mas nenhum voo com essa conexão foi encontrado.")
 
 # Rodapé
 st.markdown(
