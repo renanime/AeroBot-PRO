@@ -766,7 +766,7 @@ if botao:
             d = data_base + timedelta(days=i)
             datas_busca.append(d.strftime("%Y-%m-%d"))
 
-        st.write("⏳ Iniciando motores... ✈️ ✈️ ✈️ ✈️ ✈️  ")
+        st.write("⏳ Espere um pouco, leva pouco tempo... ✈️ ✈️ ✈️ ✈️ ✈️  ")
         progresso = st.progress(0)
         status_text = st.empty()
 
