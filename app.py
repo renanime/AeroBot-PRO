@@ -674,6 +674,42 @@ if st.session_state.is_admin:
                         st.rerun()
 
                 st.markdown("<hr style='margin: 0.2em 0; border-color: #2A3B5C;'>", unsafe_allow_html=True)
+# ========================
+# PAINEL DO CLIENTE (TROCAR SENHA E SAIR)
+# ========================
+elif st.session_state.logado and not st.session_state.is_admin:
+    with st.sidebar:
+        st.markdown("### 👤 Meu Perfil")
+        st.markdown(f"**Logado como:**<br><span style='color:#00e5ff;'>{st.session_state.usuario_logado}</span>", unsafe_allow_html=True)
+
+        st.markdown("---")
+        with st.expander("🔐 Trocar minha senha"):
+            senha_atual = st.text_input("Senha atual:", type="password")
+            nova_senha = st.text_input("Nova senha:", type="password")
+
+            if st.button("💾 Salvar Senha", type="primary", use_container_width=True):
+                if not senha_atual or not nova_senha:
+                    st.warning("Preencha os dois campos!")
+                else:
+                    usuarios = carregar_usuarios()
+                    sucesso = False
+                    for u in usuarios:
+                        if u["email"].lower() == st.session_state.usuario_logado.lower() and u["senha"] == senha_atual:
+                            u["senha"] = nova_senha
+                            sucesso = True
+                            break
+
+                    if sucesso:
+                        salvar_usuarios(usuarios)
+                        st.success("Senha alterada com sucesso!")
+                    else:
+                        st.error("Senha atual incorreta!")
+
+        st.markdown("---")
+        if st.button("🚪 Sair da Conta", type="secondary", use_container_width=True):
+            st.session_state.logado = False
+            st.session_state.usuario_logado = ""
+            st.rerun()
 
 # ========================
 # A PARTIR DAQUI COMEÇA O SEU APLICATIVO NORMAL
