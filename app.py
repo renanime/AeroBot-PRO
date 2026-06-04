@@ -468,16 +468,20 @@ button[kind="primary"]:hover {
     transform: translateY(-2px);
 }
 
-/* Botões Secundários (Lixeira) */
+/* Botões Secundários (Lixeira) - CORRIGIDO PARA NÃO FICAR AMARELO */
 button[kind="secondary"] {
     background-color: #151E32 !important;
-    border: 1px solid #EF4444 !important; /* Borda vermelha */
+    border: 1px solid #EF4444 !important;
     border-radius: 8px !important;
+    color: #F8FAFC !important;
+    box-shadow: none !important;
     transition: all 0.3s ease !important;
 }
 button[kind="secondary"]:hover {
-    background-color: #EF4444 !important; /* Fica todo vermelho ao passar o mouse */
+    background-color: #EF4444 !important;
+    color: #ffffff !important;
 }
+
 /* Barra de progresso mais limpa */
 [data-baseweb="progress-bar"] {
     background-color: #151E32;
@@ -537,67 +541,78 @@ st.markdown(
 st.markdown("---")
 
 # ========================
-# TELA DE LOGIN E GERENCIADOR DE SENHAS (PRO)
+# TELA DE LOGIN E GERENCIADOR DE USUÁRIOS (PRO)
 # ========================
 SENHA_ADMIN = "RenanAdmin"  # <-- Sua senha mestre
-ARQUIVO_SENHAS = "senhas_geradas.json"
+ARQUIVO_USUARIOS = "usuarios_cadastrados.json"
 
-def carregar_senhas():
-    if os.path.exists(ARQUIVO_SENHAS):
+def carregar_usuarios():
+    if os.path.exists(ARQUIVO_USUARIOS):
         try:
-            with open(ARQUIVO_SENHAS, "r") as f:
-                dados = json.load(f)
-                # Prevenção de erro caso exista o arquivo antigo
-                if len(dados) > 0 and isinstance(dados[0], str):
-                    return []
-                return dados
+            with open(ARQUIVO_USUARIOS, "r") as f:
+                return json.load(f)
         except:
             return []
     return []
 
-def salvar_senhas(lista_senhas):
-    with open(ARQUIVO_SENHAS, "w") as f:
-        json.dump(lista_senhas, f)
+def salvar_usuarios(lista_usuarios):
+    with open(ARQUIVO_USUARIOS, "w") as f:
+        json.dump(lista_usuarios, f)
 
 if "logado" not in st.session_state:
     st.session_state.logado = False
     st.session_state.is_admin = False
+    st.session_state.usuario_logado = ""
 
-senhas_validas = carregar_senhas()
+usuarios_validos = carregar_usuarios()
 data_hoje = datetime.now().date()
 
-# TELA DE BLOQUEIO
+# TELA DE BLOQUEIO (LOGIN POR E-MAIL E SENHA)
 if not st.session_state.logado:
     st.markdown("<br><br>", unsafe_allow_html=True)
     col_login1, col_login2, col_login3 = st.columns([1, 2, 1])
 
     with col_login2:
         st.markdown("<h3 style='text-align: center;'>🔒 Acesso Restrito</h3>", unsafe_allow_html=True)
-        senha_digitada = st.text_input("Digite a senha de acesso:", type="password")
+        email_digitado = st.text_input("E-mail:")
+        senha_digitada = st.text_input("Senha:", type="password")
 
         if st.button("Entrar", type="primary", use_container_width=True):
-            if senha_digitada == SENHA_ADMIN:
-                st.session_state.logado = True
-                st.session_state.is_admin = True
-                st.rerun()
+            if not email_digitado or not senha_digitada:
+                st.warning("Preencha o e-mail e a senha!")
             else:
-                # Verifica se a senha existe e se está no prazo de validade
-                senha_encontrada = False
-                for s in senhas_validas:
-                    if senha_digitada == s["codigo"]:
-                        data_expiracao = datetime.strptime(s["expira_em"], "%Y-%m-%d").date()
-                        if data_hoje <= data_expiracao:
-                            st.session_state.logado = True
-                            st.session_state.is_admin = False
-                            senha_encontrada = True
-                            st.rerun()
-                        else:
-                            st.error("❌ Esta senha expirou!")
-                            senha_encontrada = True
-                        break
+                # Verifica se é o Administrador
+                if email_digitado.lower() == "admin" and senha_digitada == SENHA_ADMIN:
+                    st.session_state.logado = True
+                    st.session_state.is_admin = True
+                    st.session_state.usuario_logado = "Administrador"
+                    st.rerun()
+                else:
+                    # Verifica se é um Cliente
+                    usuario_encontrado = False
+                    for u in usuarios_validos:
+                        if email_digitado.lower() == u["email"].lower() and senha_digitada == u["senha"]:
+                            if u["expira_em"] == "2099-12-31":
+                                st.session_state.logado = True
+                                st.session_state.is_admin = False
+                                st.session_state.usuario_logado = u["email"]
+                                usuario_encontrado = True
+                                st.rerun()
+                            else:
+                                data_expiracao = datetime.strptime(u["expira_em"], "%Y-%m-%d").date()
+                                if data_hoje <= data_expiracao:
+                                    st.session_state.logado = True
+                                    st.session_state.is_admin = False
+                                    st.session_state.usuario_logado = u["email"]
+                                    usuario_encontrado = True
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Sua assinatura expirou! Contate o suporte.")
+                                    usuario_encontrado = True
+                            break
 
-                if not senha_encontrada:
-                    st.error("❌ Senha incorreta!")
+                    if not usuario_encontrado:
+                        st.error("❌ E-mail ou senha incorretos!")
     st.stop()
 
 # PAINEL DO ADMINISTRADOR
@@ -605,61 +620,57 @@ if st.session_state.is_admin:
     with st.sidebar:
         st.markdown("### 👑 Painel Admin")
 
-        # Gerador de senhas
-        st.markdown("**Criar Acesso:**")
+        st.markdown("**Cadastrar Novo Cliente:**")
+        novo_email = st.text_input("E-mail do cliente:")
+        nova_senha = st.text_input("Senha de acesso:")
+        is_permanente = st.checkbox("⭐ Acesso Definitivo (Vitalício)")
 
-        # Nova opção de senha definitiva
-        is_permanente = st.checkbox("⭐ Senha Definitiva (Sem validade)")
-
-        # Só mostra o campo de dias se NÃO for definitiva
         if not is_permanente:
             dias_validade = st.number_input("Dias de teste:", min_value=1, value=7)
 
-        if st.button("➕ Gerar Senha", type="primary", use_container_width=True):
-            nova_senha = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-            # Se for definitiva, joga a validade para o ano 2099
-            if is_permanente:
-                data_exp = "2099-12-31"
+        if st.button("➕ Cadastrar Cliente", type="primary", use_container_width=True):
+            if not novo_email or not nova_senha:
+                st.warning("Preencha o e-mail e a senha!")
             else:
-                data_exp = (datetime.now() + timedelta(days=dias_validade)).strftime("%Y-%m-%d")
+                if is_permanente:
+                    data_exp = "2099-12-31"
+                else:
+                    data_exp = (datetime.now() + timedelta(days=dias_validade)).strftime("%Y-%m-%d")
 
-            senhas_validas.append({"codigo": nova_senha, "expira_em": data_exp})
-            salvar_senhas(senhas_validas)
-            st.success(f"Criada: **{nova_senha}**")
-            st.rerun()
+                usuarios_validos.append({"email": novo_email, "senha": nova_senha, "expira_em": data_exp})
+                salvar_usuarios(usuarios_validos)
+                st.success("Cliente cadastrado com sucesso!")
+                st.rerun()
 
         st.markdown("---")
-        st.markdown("**Senhas Ativas:**")
+        st.markdown("**Clientes Ativos:**")
 
-        # Lista as senhas
-        if len(senhas_validas) == 0:
-            st.info("Nenhuma senha ativa.")
+        if len(usuarios_validos) == 0:
+            st.info("Nenhum cliente cadastrado.")
         else:
-            for i, s in enumerate(senhas_validas):
-                col_texto, col_btn = st.columns([2.5, 1]) 
+            for i, u in enumerate(usuarios_validos):
+                col_texto, col_btn = st.columns([3, 1]) 
 
                 with col_texto:
-                    # Verifica se é a senha definitiva (ano 2099)
-                    if s["expira_em"] == "2099-12-31":
+                    if u["expira_em"] == "2099-12-31":
                         status = "⭐"
-                        texto_validade = "Acesso Definitivo"
+                        texto_validade = "Vitalício"
                     else:
-                        data_exp_obj = datetime.strptime(s["expira_em"], "%Y-%m-%d").date()
+                        data_exp_obj = datetime.strptime(u["expira_em"], "%Y-%m-%d").date()
                         status = "🟢" if data_hoje <= data_exp_obj else "🔴"
-                        texto_validade = f"Vence em: {s['expira_em']}"
+                        texto_validade = f"Vence: {u['expira_em']}"
 
                     st.markdown(
-                        f"{status} <span style='color: #94A3B8; font-size: 13px;'>{texto_validade}</span>", 
+                        f"{status} **{u['email']}**<br><span style='color: #94A3B8; font-size: 12px;'>Senha: {u['senha']} | {texto_validade}</span>", 
                         unsafe_allow_html=True
                     )
-                    st.code(s['codigo'])
 
                 with col_btn:
                     st.markdown("<br>", unsafe_allow_html=True) 
-                    if st.button("🗑️", key=f"del_{s['codigo']}_{i}", use_container_width=True):
-                        senhas_validas.remove(s)
-                        salvar_senhas(senhas_validas)
+                    # AQUI ESTÁ A CORREÇÃO DA LIXEIRA: type="secondary" e apenas o ícone
+                    if st.button("🗑️", key=f"del_{u['email']}_{i}", type="secondary", use_container_width=True):
+                        usuarios_validos.remove(u)
+                        salvar_usuarios(usuarios_validos)
                         st.rerun()
 
                 st.markdown("<hr style='margin: 0.2em 0; border-color: #2A3B5C;'>", unsafe_allow_html=True)
